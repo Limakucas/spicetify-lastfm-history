@@ -23,6 +23,6 @@ Edit the top of `index.js`:
 ## How it works
 
 - Pulls `user.gettopartists` / `gettoptracks` / `gettopalbums` from the last.fm API for the selected period (`7day`, `1month`, `3month`, `6month`, `12month`, `overall`).
-- On click, queries the Spotify search API via `Spicetify.CosmosAsync` and navigates to the first match using `Spicetify.Platform.History.push`.
+- Display-only for now: no images, no click-through to Spotify pages. Both are TODO — last.fm's image API is broken (always returns a placeholder), and Spotify's public web search API rate-limits aggressively when fanned out from a Spicetify extension.
 
 No build step — pure vanilla JS using `Spicetify.React.createElement`.

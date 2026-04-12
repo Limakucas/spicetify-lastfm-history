@@ -1,6 +1,6 @@
 // Last.fm History — Spicetify custom app
-// Shows top artists / tracks / albums for traxaber across last.fm time periods.
-// Clicking an item searches Spotify and navigates to the matching page.
+// Shows top artists / tracks / albums for a last.fm user across multiple time periods.
+// Display only — no Spotify enrichment yet (TODO: revisit images and click-through).
 
 const LASTFM_API_KEY = "16af2b753a37b109ecf20be69b6ec5c4";
 const LASTFM_USER = "traxaber";
@@ -33,42 +33,6 @@ function extractItems(json, tabKey) {
   if (tabKey === "tracks") return json.toptracks?.track ?? [];
   if (tabKey === "albums") return json.topalbums?.album ?? [];
   return [];
-}
-
-function imageUrl(item) {
-  const imgs = item.image;
-  if (!Array.isArray(imgs)) return null;
-  // pick "large" or last
-  const large = imgs.find((i) => i.size === "large") || imgs[imgs.length - 1];
-  return large?.["#text"] || null;
-}
-
-async function spotifySearchAndNavigate(tabKey, item) {
-  try {
-    let q, type;
-    if (tabKey === "artists") {
-      q = item.name;
-      type = "artist";
-    } else if (tabKey === "tracks") {
-      q = `${item.name} ${item.artist?.name ?? ""}`;
-      type = "track";
-    } else {
-      q = `${item.name} ${item.artist?.name ?? ""}`;
-      type = "album";
-    }
-    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=${type}&limit=1`;
-    const result = await Spicetify.CosmosAsync.get(url);
-    const hit = result?.[`${type}s`]?.items?.[0];
-    if (!hit) {
-      Spicetify.showNotification(`No Spotify match for ${item.name}`, true);
-      return;
-    }
-    const uri = Spicetify.URI.fromString(hit.uri);
-    Spicetify.Platform.History.push(uri.toURLPath(true));
-  } catch (e) {
-    console.error("[lastfm-history] navigation failed", e);
-    Spicetify.showNotification("Spotify lookup failed", true);
-  }
 }
 
 function App() {
@@ -146,21 +110,13 @@ function App() {
       "ol",
       { className: "lfm-list" },
       items.map((item, idx) => {
-        const img = imageUrl(item);
         const playcount = item.playcount ? `${item.playcount} plays` : "";
         const subtitle =
           tab === "artists" ? playcount : `${item.artist?.name ?? ""} · ${playcount}`;
         return h(
           "li",
-          {
-            key: `${tab}-${idx}-${item.name}`,
-            className: "lfm-item",
-            onClick: () => spotifySearchAndNavigate(tab, item),
-          },
+          { key: `${tab}-${idx}-${item.name}`, className: "lfm-item" },
           h("span", { className: "lfm-rank" }, idx + 1),
-          img
-            ? h("img", { className: "lfm-img", src: img, alt: "" })
-            : h("div", { className: "lfm-img lfm-img-placeholder" }),
           h(
             "div",
             { className: "lfm-meta" },
@@ -187,7 +143,6 @@ function App() {
   );
 }
 
-// Inject styles once.
 (function injectStyles() {
   if (document.getElementById("lfm-styles")) return;
   const style = document.createElement("style");
@@ -213,13 +168,9 @@ function App() {
     .lfm-list { list-style: none; padding: 0; margin: 16px 0 0 0; }
     .lfm-item {
       display: flex; align-items: center; gap: 12px;
-      padding: 8px 12px; border-radius: 6px; cursor: pointer;
-      transition: background 0.15s;
+      padding: 8px 12px; border-radius: 6px;
     }
-    .lfm-item:hover { background: var(--spice-card); }
     .lfm-rank { width: 28px; text-align: right; color: var(--spice-subtext); font-variant-numeric: tabular-nums; }
-    .lfm-img { width: 48px; height: 48px; border-radius: 4px; object-fit: cover; background: var(--spice-card); }
-    .lfm-img-placeholder { background: var(--spice-card); }
     .lfm-meta { display: flex; flex-direction: column; min-width: 0; }
     .lfm-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .lfm-subtitle { font-size: 12px; color: var(--spice-subtext); }
@@ -227,7 +178,6 @@ function App() {
   document.head.appendChild(style);
 })();
 
-// Spicetify custom-app entry point.
 // eslint-disable-next-line no-unused-vars
 function render() {
   return Spicetify.React.createElement(App);
