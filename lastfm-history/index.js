@@ -2,8 +2,8 @@
 // Shows top artists / tracks / albums for a last.fm user across multiple time periods.
 // Display only — no Spotify enrichment yet (TODO: revisit images and click-through).
 
-const LASTFM_API_KEY = "16af2b753a37b109ecf20be69b6ec5c4";
-const LASTFM_USER = "traxaber";
+const LASTFM_API_KEY = "148e00a200abd5ab4f3d652e4ce428f6";
+const LASTFM_USER = "sx.lkzz";
 const LASTFM_BASE = "https://ws.audioscrobbler.com/2.0/";
 
 const PERIODS = [
